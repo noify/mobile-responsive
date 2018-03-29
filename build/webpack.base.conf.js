@@ -37,8 +37,11 @@ module.exports = {
   module: { // 如何处理项目中不同类型的模块
     rules: [ // 用于规定在不同模块被创建时如何处理模块的规则数组
       {
-        test: /\.html$/,
-        loader: 'html-loader'
+        test: /\.(html)$/,
+        loader: 'html-loader',
+        options: {
+          attrs: ['img:src']
+        }
       },
       // 对src和test文件夹下的.js文件使用babel-loader将es6+的代码转成es5
       {
