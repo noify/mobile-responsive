@@ -53,35 +53,35 @@
 	};
 
 	var LazyLoad = function LazyLoad(instanceSettings) {
-			this._settings = Object.assign({}, {
-				elements_selector: 'img',
-				container: document,
-				threshold: 300,
-				throttle: 150,
-        data_src: 'src',
-        data_srcset: 'srcset',
-				skip_invisible: true,
-				callback_load: null,
-				callback_error: null,
-				callback_set: null,
-				callback_enter: null
-			}, instanceSettings);
+		this._settings = Object.assign({}, {
+			elements_selector: 'img',
+			container: document,
+			threshold: 300,
+			throttle: 150,
+			data_src: 'src',
+			data_srcset: 'srcset',
+			skip_invisible: true,
+			callback_load: null,
+			callback_error: null,
+			callback_set: null,
+			callback_enter: null
+		}, instanceSettings);
 
-			this._previousLoopTime = 0;
-			this._loopTimeout = null;
-			this._boundHandleScroll = this.handleScroll.bind(this);
-			
-			window.addEventListener('resize', this._boundHandleScroll);
-			this.update();
+		this._previousLoopTime = 0;
+		this._loopTimeout = null;
+		this._boundHandleScroll = this.handleScroll.bind(this);
+
+		window.addEventListener('resize', this._boundHandleScroll);
+		this.update();
 	};
 
 	LazyLoad.prototype = {
 
 		_reveal: function _reveal(element) {
-      var settings = this._settings,
-          src = getData(element, settings.data_src),
-          srcset = getData(element, settings.data_srcset),
-          devicePixelRatio = window.devicePixelRatio;
+			var settings = this._settings,
+				src = getData(element, settings.data_src),
+				srcset = getData(element, settings.data_srcset),
+				devicePixelRatio = window.devicePixelRatio;
 
 			var errorCallback = function errorCallback() {
 				if (!settings) {
@@ -106,19 +106,19 @@
 			callCallback(settings.callback_enter, element);
 			element.addEventListener('load', loadCallback);
 			element.addEventListener('error', errorCallback);
-      setData(element, 'lazyload', 'loading');
-      if(src){
-			  element.setAttribute('src', src);
-      }
-      if(srcset){
-        srcset.trim().split(',').forEach(src => {
-          src = src.trim().split(' ');
-          if(devicePixelRatio + 'x' === src[1].toLocaleLowerCase()){
-            element.setAttribute('src', src[0]);
-            return;
-          }
-        });
-      }
+			setData(element, 'lazyload', 'loading');
+			if (src) {
+				element.setAttribute('src', src);
+			}
+			if (srcset) {
+				srcset.trim().split(',').forEach(src => {
+					src = src.trim().split(' ');
+					if (devicePixelRatio + 'x' === src[1].toLocaleLowerCase()) {
+						element.setAttribute('src', src[0]);
+						return;
+					}
+				});
+			}
 			callCallback(settings.callback_set, element);
 		},
 
@@ -126,10 +126,10 @@
 			var _this = this,
 				settings = this._settings;
 
-        this._elements = this._elements.filter(function (element) {
+			this._elements = this._elements.filter(function (element) {
 				if (!(settings.skip_invisible && element.offsetParent === null) && isInsideViewport(element, settings.container, settings.threshold)) {
 					_this._reveal(element);
-        }
+				}
 				return !getData(element, 'lazyload');
 			});
 			if (this._elements.length === 0) {
@@ -150,7 +150,7 @@
 				this._settings.container.removeEventListener('scroll', this._boundHandleScroll);
 			}
 		},
-		
+
 		handleScroll: function handleScroll() {
 			var throttle = this._settings.throttle;
 
@@ -159,8 +159,8 @@
 				var remainingTime = throttle - (now - this._previousLoopTime);
 				if (remainingTime <= 0 || remainingTime > throttle) {
 					if (this._loopTimeout) {
-							clearTimeout(this._loopTimeout);
-							this._loopTimeout = null;
+						clearTimeout(this._loopTimeout);
+						this._loopTimeout = null;
 					}
 					this._previousLoopTime = now;
 					this._loopThroughElements();
@@ -178,7 +178,7 @@
 
 		update: function update() {
 			var settings = this._settings
-			
+
 			this._elements = Array.prototype.slice.call(settings.container.querySelectorAll(settings.elements_selector)).filter(function (element) {
 				return !getData(element, 'lazyload');
 			});
