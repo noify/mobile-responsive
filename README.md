@@ -17,18 +17,12 @@ npm run build
 
 低版本安卓有兼容性问题
 
-背景图使用 `css-image-set` [兼容性](https://caniuse.com/css-image-set/embed)
+使用 `css-image-set` [兼容性](https://caniuse.com/css-image-set/embed)
 
 ```css
 .example {
   background-image: -webkit-image-set( "test.png" 1x, "test-2x.png" 2x, "test-print.png" 600dpi );
 }
-```
-
-img使用 `srcset` [兼容性](https://caniuse.com/srcset/embed)
-
-```html
-<img src="test.png" srcset="test.png 1x, test-2x.png 2x, test-3x.png 3x">
 ```
 
 使用 `@media`
@@ -53,6 +47,14 @@ img使用 `srcset` [兼容性](https://caniuse.com/srcset/embed)
   }
 }
 ```
+
+使用 `srcset` [兼容性](https://caniuse.com/srcset/embed)
+
+```html
+<img src="test.png" srcset="test.png 1x, test-2x.png 2x, test-3x.png 3x">
+```
+
+使用插件 lazyload，延迟加载img并实现 srcset 的功能
 
 ## 1px问题
 
