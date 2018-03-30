@@ -648,24 +648,16 @@
         <figcaption>Lorem ipsum 15</figcaption>
     </figure>
 </div>
-<script src="../dist/lazyload.min.js"></script>
+<script src="../index.js"></script>
 <script>
 (function() {
     var lazyLoadInstances = [];
-    // The "lazyLazy" instance of lazyload is used (kinda improperly) 
-    // to check when the .horzContainer divs enter the viewport
-    var lazyLazy = new LazyLoad({
-        elements_selector: ".horzContainer",
-        // When the .horzContainer div enters the viewport...
-        callback_set: function(el) {
-            // ...instantiate a new LazyLoad on it
-            var oneLL = new LazyLoad({
-                container: el
-            });
-            // Optionally push it in the lazyLoadInstances 
-            // array to keep track of the instances
-            lazyLoadInstances.push(oneLL);
-        }
+    
+    Array.prototype.slice.call(document.getElementsByClassName('horzContainer')).forEach(el => {
+        var oneLL = new LazyLoad({
+            container: el
+        });
+        lazyLoadInstances.push(oneLL);
     });
 })();
 </script>

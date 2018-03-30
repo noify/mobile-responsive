@@ -16,7 +16,7 @@
 
 	// 是否在 Viewport 下面
 	var isBelowViewport = function isBelowViewport(element, container, threshold) {
-		var fold = container === window ? window.innerHeight + window.pageYOffset : getTopOffset(container) + container.offsetHeight;
+		var fold = container === document ? window.innerHeight + window.pageYOffset : getTopOffset(container) + container.offsetHeight;
 		return fold <= getTopOffset(element) - threshold;
 	};
 
@@ -28,58 +28,25 @@
 	// 是否在 Viewport 右面
 	var isAtRightOfViewport = function isAtRightOfViewport(element, container, threshold) {
 		var documentWidth = window.innerWidth;
-		var fold = container === window ? documentWidth + window.pageXOffset : getLeftOffset(container) + documentWidth;
+		var fold = container === document ? documentWidth + window.pageXOffset : getLeftOffset(container) + documentWidth;
 		return fold <= getLeftOffset(element) - threshold;
 	};
 
 	// 是否在 Viewport 上面
 	var isAboveViewport = function isAboveViewport(element, container, threshold) {
-		var fold = container === window ? window.pageYOffset : getTopOffset(container);
+		var fold = container === document ? window.pageYOffset : getTopOffset(container);
 		return fold >= getTopOffset(element) + threshold + element.offsetHeight;
 	};
 
 	// 是否在 Viewport 左面
 	var isAtLeftOfViewport = function isAtLeftOfViewport(element, container, threshold) {
-		var fold = container === window ? window.pageXOffset : getLeftOffset(container);
+		var fold = container === document ? window.pageXOffset : getLeftOffset(container);
 		return fold >= getLeftOffset(element) + threshold + element.offsetWidth;
 	};
 
 	// 是否在 Viewport 中
 	var isInsideViewport = function isInsideViewport(element, container, threshold) {
 		return !isBelowViewport(element, container, threshold) && !isAboveViewport(element, container, threshold) && !isAtRightOfViewport(element, container, threshold) && !isAtLeftOfViewport(element, container, threshold);
-	};
-
-	// 创建实例
-	/* Creates instance and notifies it through the window element */
-	var createInstance = function createInstance(classObj, options) {
-		var event;
-		var eventString = "LazyLoad::Initialized";
-		var instance = new classObj(options);
-		try {
-			// Works in modern browsers
-			event = new CustomEvent(eventString, { detail: { instance: instance } });
-		} catch (err) {
-			// Works in Internet Explorer (all versions)
-			event = document.createEvent("CustomEvent");
-			event.initCustomEvent(eventString, false, false, { instance: instance });
-		}
-		window.dispatchEvent(event);
-	};
-
-	// 自动初始化
-	/* Auto initialization of one or more instances of lazyload, depending on the 
-			options passed in (plain object or an array) */
-	var autoInitialize = function autoInitialize(classObj, options) {
-		var optsLength = options.length;
-		if (!optsLength) {
-			// Plain object
-			createInstance(classObj, options);
-		} else {
-			// Array of objects
-			for (var i = 0; i < optsLength; i++) {
-				createInstance(classObj, options[i]);
-			}
-		}
 	};
 
 	var dataPrefix = "data-";
@@ -92,66 +59,37 @@
 		return element.setAttribute(dataPrefix + attribute, value);
 	};
 
-	// 设置来源路径
 	var setSources = function setSources(element, srcDataAttribute) {
 		element.setAttribute("src", getData(element, srcDataAttribute));
 	};
 
-	var supportsClassList = "classList" in document.createElement("p");
-
-	var addClass = function addClass(element, className) {
-		if (supportsClassList) {
-			element.classList.add(className);
-			return;
-		}
-		element.className += (element.className ? " " : "") + className;
-	};
-
-	var removeClass = function removeClass(element, className) {
-		if (supportsClassList) {
-			element.classList.remove(className);
-			return;
-		}
-		element.className = element.className.replace(new RegExp("(^|\\s+)" + className + "(\\s+|$)"), " ").replace(/^\s+/, "").replace(/\s+$/, "");
-	};
-
-	/*
-		* Constructor
-		*/
-
 	var LazyLoad = function LazyLoad(instanceSettings) {
 			this._settings = Object.assign({}, {
-				container: window,
+				elements_selector: "img",
+				container: document,
 				threshold: 300,
 				throttle: 150,
 				data_src: "src",
+				skip_invisible: true,
 				class_loading: "loading",
 				class_loaded: "loaded",
 				class_error: "error",
-				class_initial: "initial",
-				skip_invisible: true,
 				callback_load: null,
 				callback_error: null,
 				callback_set: null,
-				callback_processed: null,
 				callback_enter: null
 			}, instanceSettings);
-			this._queryOriginNode = this._settings.container === window ? document : this._settings.container;
 
 			this._previousLoopTime = 0;
 			this._loopTimeout = null;
 			this._boundHandleScroll = this.handleScroll.bind(this);
 
-			this._isFirstLoop = true;
 			window.addEventListener("resize", this._boundHandleScroll);
 			this.update();
 	};
 
 	LazyLoad.prototype = {
 
-		/*
-			* Private methods
-			*/
 		_reveal: function _reveal(element) {
 			var settings = this._settings;
 
@@ -162,8 +100,7 @@
 				}
 				element.removeEventListener("load", loadCallback);
 				element.removeEventListener("error", errorCallback);
-				removeClass(element, settings.class_loading);
-				addClass(element, settings.class_error);
+				setData(element, 'lazyload', settings.class_error);
 				callCallback(settings.callback_error, element);
 			};
 
@@ -172,8 +109,7 @@
 				if (!settings) {
 					return;
 				}
-				removeClass(element, settings.class_loading);
-				addClass(element, settings.class_loaded);
+				setData(element, 'lazyload', settings.class_loaded);
 				element.removeEventListener("load", loadCallback);
 				element.removeEventListener("error", errorCallback);
 				callCallback(settings.callback_load, element);
@@ -182,7 +118,7 @@
 			callCallback(settings.callback_enter, element);
 			element.addEventListener("load", loadCallback);
 			element.addEventListener("error", errorCallback);
-			addClass(element, settings.class_loading);
+			setData(element, 'lazyload', settings.class_loading);
 			setSources(element, settings.data_src);
 			callCallback(settings.callback_set, element);
 		},
@@ -191,9 +127,7 @@
 			var settings = this._settings,
 					elements = this._elements,
 					elementsLength = !elements ? 0 : elements.length;
-			var i = void 0,
-					processedIndexes = [],
-					firstLoop = this._isFirstLoop;
+			var i = void 0;
 
 			for (i = 0; i < elementsLength; i++) {
 				var element = elements[i];
@@ -203,47 +137,17 @@
 				}
 
 				if ((!("onscroll" in window) || /glebot/.test(navigator.userAgent)) || isInsideViewport(element, settings.container, settings.threshold)) {
-					if (firstLoop) {
-						addClass(element, settings.class_initial);
-					}
 					/* Start loading the image */
 					this._reveal(element);
-					/* Marking the element as processed. */
-					processedIndexes.push(i);
-					setData(element, "was-processed", true);
 				}
 			}
 			/* Removing processed elements from this._elements. */
-			while (processedIndexes.length) {
-				elements.splice(processedIndexes.pop(), 1);
-				callCallback(settings.callback_processed, elements.length);
-			}
+			elements = elements.filter(function (element) {
+				return !getData(element, "lazyload");
+			});
 			/* Stop listening to scroll event when 0 elements remains */
 			if (elementsLength === 0) {
 				this._stopScrollHandler();
-			}
-			/* Sets isFirstLoop to false */
-			if (firstLoop) {
-				this._isFirstLoop = false;
-			}
-		},
-
-		_purgeElements: function _purgeElements() {
-			var elements = this._elements,
-					elementsLength = elements.length;
-			var i = void 0,
-					elementsToPurge = [];
-
-			for (i = 0; i < elementsLength; i++) {
-				var element = elements[i];
-				/* If the element has already been processed, skip it */
-				if (getData(element, "was-processed")) {
-					elementsToPurge.push(i);
-				}
-			}
-			/* Removing elements to purge from this._elements. */
-			while (elementsToPurge.length > 0) {
-				elements.splice(elementsToPurge.pop(), 1);
 			}
 		},
 
@@ -260,11 +164,7 @@
 				this._settings.container.removeEventListener("scroll", this._boundHandleScroll);
 			}
 		},
-
-		/* 
-			* Public methods
-			*/
-
+		
 		handleScroll: function handleScroll() {
 			var throttle = this._settings.throttle;
 
@@ -291,33 +191,26 @@
 		},
 
 		update: function update() {
-				// Converts to array the nodeset obtained querying the DOM from _queryOriginNode with elements_selector
-				this._elements = Array.prototype.slice.call(this._queryOriginNode.querySelectorAll('img'));
-				this._purgeElements();
-				this._loopThroughElements();
-				this._startScrollHandler();
+			var settings = this._settings
+			// Converts to array the nodeset obtained querying the DOM from _queryOriginNode with elements_selector
+			this._elements = Array.prototype.slice.call(settings.container.querySelectorAll(settings.elements_selector)).filter(function (element) {
+				return !getData(element, "lazyload");
+			});
+			this._loopThroughElements();
+			this._startScrollHandler();
 		},
 
 		destroy: function destroy() {
-				window.removeEventListener("resize", this._boundHandleScroll);
-				if (this._loopTimeout) {
-					clearTimeout(this._loopTimeout);
-					this._loopTimeout = null;
-				}
-				this._stopScrollHandler();
-				this._elements = null;
-				this._queryOriginNode = null;
-				this._settings = null;
+			window.removeEventListener("resize", this._boundHandleScroll);
+			if (this._loopTimeout) {
+				clearTimeout(this._loopTimeout);
+				this._loopTimeout = null;
+			}
+			this._stopScrollHandler();
+			this._elements = null;
+			this._settings = null;
 		}
 	};
 
-	if (window.lazyLoadOptions) {
-		autoInitialize(LazyLoad, window.lazyLoadOptions);
-	}
-
 	return LazyLoad;
 });
-// /* Prevents img without src to appear */
-// img:not([src]) {
-// 	visibility: hidden;
-// }
