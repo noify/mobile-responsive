@@ -13,11 +13,20 @@ npm run dev
 npm run build
 ```
 
-## 高清图问题
+## 布局
 
-低版本安卓有兼容性问题
+使用 vw, vh, vmin, vmax
 
-使用 `css-image-set` [兼容性](https://caniuse.com/css-image-set/embed)
+- vw：是Viewport's width的简写,1vw等于window.innerWidth的1%
+- vh：和vw类似，是Viewport's height的简写，1vh等于window.innerHeihgt的1%
+- vmin：vmin的值是当前vw和vh中较小的值
+- vmax：vmax的值是当前vw和vh中较大的值
+
+不过该方案有些小小的兼容性问题，大约4.5%的安卓手机(安卓系统4.4以下)不支持，所以为了兼容性可以考虑使用 flexible + rem。
+
+## 高清图
+
+背景图使用 `css-image-set` [兼容性](https://caniuse.com/css-image-set/embed)
 
 ```css
 .example {
@@ -25,7 +34,7 @@ npm run build
 }
 ```
 
-使用 `@media`
+背景图使用 `@media`
 
 ```css
 /* 普通显示屏(设备像素比例小于等于1)使用1倍的图 */
@@ -48,19 +57,19 @@ npm run build
 }
 ```
 
-使用 `srcset` [兼容性](https://caniuse.com/srcset/embed)
+img 使用 `srcset` [兼容性](https://caniuse.com/srcset/embed)
 
 ```html
 <img src="test.png" srcset="test.png 1x, test-2x.png 2x, test-3x.png 3x">
 ```
 
-使用插件 lazyload，延迟加载img并实现 srcset 的功能
+使用插件 lazyload，延迟加载 img 并实现 srcset 的功能。
 
-## 1px问题
+## 1px边框
 
-什么是 1像素问题 ？ 我们说的1像素，就是指1CSS像素。问题就是设计师实际了一条线，本来是1像素，但是在有些设备上，用了横竖都是3的物理像素（即：3x3=9像素）来显示这1像素（即：dpr=3），导致在这些设备上，这条线看上去非常粗！
+我们说的1像素，就是指1CSS像素。问题就是设计师实际了一条线，本来是1像素，但是在有些设备上，用了横竖都是3的物理像素（即：3x3=9像素）来显示这1像素（即：dpr=3），导致在这些设备上，这条线看上去非常粗！
 
-使用css3的 scaleY(0.5)
+使用css3的 transform
 
 ```css
 .div:before {
@@ -92,5 +101,19 @@ npm run build
 }
 ```
 
-使用lib-flexible，将将页面整体所缩小1/2
+使用 `border-image`
 
+使用高度仅为1px的linenew.png，代替border-color
+
+```css
+.border-image-1px {
+  border-bottom: 1px solid #666;
+}
+@media only screen and (-webkit-min-device-pixel-ratio: 2) {
+  .border-image-1px {
+    border-bottom: none;
+    border-width: 0 0 1px 0;
+    border-image: url(linenew.png) 0 0 2 0 stretch;
+  }
+}
+```

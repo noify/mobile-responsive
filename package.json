@@ -36,6 +36,7 @@
     "babel-preset-env": "^1.6.1",
     "babel-preset-stage-2": "^6.22.0",
     "babel-register": "^6.22.0",
+    "babel-runtime": "^6.26.0",
     "ora": "^1.2.0",
     "rimraf": "^2.6.0",
     "chalk": "^2.0.1",
