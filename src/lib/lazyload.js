@@ -79,6 +79,7 @@ LazyLoad.prototype = {
 				srcset = getData(element, settings.data_srcset),
 				devicePixelRatio = parseInt(window.devicePixelRatio) || 1;
 
+		devicePixelRatio = devicePixelRatio > 3 ? 3 : devicePixelRatio;
 		var errorCallback = function errorCallback() {
 			if (!settings) {
 				return;
